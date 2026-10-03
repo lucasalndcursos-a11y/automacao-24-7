@@ -1,12 +1,47 @@
-{
-  "name": "automacao-24-7",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "start": "node index.js",
-    "postinstall": "npx playwright install --with-deps"
-  },
-  "dependencies": {
-    "playwright": "^1.48.0"
+const { chromium } = require('playwright');
+const { execSync } = require('child_process');
+
+async function iniciar() {
+  console.log("ROBO INICIADO - 24/7");
+  
+  // Tenta instalar o navegador se não tiver
+  try {
+    console.log("Verificando navegador...");
+    execSync("npx playwright install chromium --with-deps", { stdio: "inherit" });
+  } catch (e) {
+    console.log("Navegador já instalado ou erro na instalação, continuando...");
+  }
+
+  while (true) {
+    let browser = null;
+    try {
+      console.log("Abrindo navegador...");
+      browser = await chromium.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+      });
+      
+      const page = await browser.newPage();
+      console.log("Acessando site...");
+      await page.goto('https://example.com', { waitUntil: 'domcontentloaded', timeout: 60000 });
+      
+      console.log("Site acessado! Título:", await page.title());
+      
+      // AQUI VOCÊ COLOCA O QUE O ROBÔ TEM QUE FAZER
+      // Exemplo: await page.click('button');
+      
+      await page.waitForTimeout(10000);
+      await browser.close();
+      
+      console.log("Rodada finalizada, esperando 30s...");
+      await new Promise(r => setTimeout(r, 30000));
+      
+    } catch (erro) {
+      console.log("Erro:", erro.message, "- Tentando de novo em 30s");
+      if (browser) try { await browser.close(); } catch {}
+      await new Promise(r => setTimeout(r, 30000));
+    }
   }
 }
+
+iniciar();
