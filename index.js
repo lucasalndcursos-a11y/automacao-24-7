@@ -5,9 +5,10 @@ async function iniciar() {
   console.log("ROBO INICIADO - 24/7");
   try {
     console.log("Verificando navegador...");
-    execSync("npx playwright install chromium --with-deps", { stdio: "inherit" });
+    execSync("npx playwright install --with-deps chromium chromium-headless-shell", { stdio: "inherit" });
+    console.log("Navegador instalado com sucesso!");
   } catch (e) {
-    console.log("Continuando...");
+    console.log("Aviso na instalacao:", e.message);
   }
 
   while (true) {
@@ -16,7 +17,7 @@ async function iniciar() {
       console.log("Abrindo navegador...");
       browser = await chromium.launch({
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
       });
       const page = await browser.newPage();
       console.log("Acessando site...");
